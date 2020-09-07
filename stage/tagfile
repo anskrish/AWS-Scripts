@@ -1,0 +1,6 @@
+NodeCount=1|Name=tag:Name,Values=stage-kafka-cluster
+NodeCount=1|Name=tag:Name,Values=stage-cassandra-cluster
+NodeCount=1|Name=tag:Name,Values=stage-rabbit-cluster
+NodeCount=1|Name=tag:kubernetes.io/stage-a,Values=1|Name=tag:group,Values=kube
+NodeCount=1|Name=tag:kubernetes.io/stage-b,Values=1|Name=tag:group,Values=kube
+

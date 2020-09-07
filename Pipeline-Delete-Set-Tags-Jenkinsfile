@@ -1,0 +1,117 @@
+def credentialsMap = [:]
+// Dev Credentials details
+credentialsMap ['dev'] = [
+        account:'0343221332xx', 
+        region_name: 'us-west-2',
+        credentailsid:'jenkins-credentials',
+        role_arn: 'arn:aws:iam::0343221332xx:role/poweruser'
+        ]
+
+// Stage Credentials details
+credentialsMap ['stage'] = [
+        account:'0563432323xx',
+        region_name: 'us-west-2',
+        credentailsid:'jenkins-credentials',
+        role_arn: 'arn:aws:iam::0563432323xx:role/poweruser'
+        ]
+
+// Prod Credentials details
+credentialsMap ['production'] = [
+        account:'675432134xx',
+        region_name: 'us-west-2',
+        credentailsid:'jenkins-Prod',
+        role_arn: 'arn:aws:iam::675432134xx:role/poweruser'
+        ]
+
+// QA Credentials details    
+credentialsMap ['qa'] = [
+        account:'8266207453xx',
+        region_name: 'us-west-2',
+        credentailsid:'jenkins-credentails',
+        role_arn: 'arn:aws:iam::8266207453xx:role/poweruser'
+        ]
+
+
+pipeline {
+  agent { label 'ubuntu-1804' }
+
+  environment {
+        //Creating environment variables based on input param
+        stack_credentailsid = "${credentialsMap[stack].credentailsid}"
+        stack_arn = "${credentialsMap[stack].role_arn}"
+        stack_account = "${credentialsMap[stack].account}"
+        stack_region = "${credentialsMap[stack].region_name}"
+
+    }
+
+  stages {
+        stage('Setting up the target instance tags'){
+            steps {
+                withAWS(credentials: "$stack_credentailsid", region: "$stack_region", role: "$stack_arn", roleAccount: "$stack_account") {
+                sh '''#!/bin/bash
+
+                ####Print Stack name####
+                echo "Setting up the target instance tags on $stack"
+                ####Filter the existing Deploymenttype tagged Instances####
+                aws ec2 describe-instances --filters "Name=tag:Deploymenttype,Values=AWS-Terraform-$stack" --query Reservations[*].Instances[*].[InstanceId]  --output text >> tagged_instances
+                
+                ####Delete Deploymenttype tags for existing Instances####
+                while read instance
+                do
+                aws ec2 delete-tags --resources $instance --tags Key=\"Deploymenttype\",Value=AWS-Terraform-$stack
+                done < tagged_instances
+                
+                ####Delete old target file if its existed ####
+                rm -rf target_instances
+
+                ####Filter the instances based on tag_resources file####
+                while read tagname
+                do
+                        tagresource_array=($(awk -F"|" '{$1=$1} 1' <<< $tagname))
+                        tag_resource_count=`echo ${tagresource_array[0]} | awk -F"=" '{print $2}'`
+                        if [[ "$tag_resource_count" == 0 ]]; then
+                                echo "you have set ${tagresource_array[1]} tagged instance count is 0! So skipping it"
+                        else
+                                case ${#tagresource_array[@]} in
+
+                                        2)####this condition will execute when tagresource file has one tag####
+                                                target_resources=`aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" "${tagresource_array[1]}" --query Reservations[*].Instances[*].[InstanceId]  --output text | sed "$tag_resource_count"q`
+                                                output_count=`aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" "${tagresource_array[1]}" --query Reservations[*].Instances[*].[InstanceId]  --output text | sed "$tag_resource_count"q | wc -l`;;
+                                        
+                                        3)####this condition will execute when tagresource file has two tags####
+                                                target_resources=`aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" "${tagresource_array[1]}" "${tagresource_array[2]}" --query Reservations[*].Instances[*].[InstanceId]  --output text | sed "$tag_resource_count"q`
+                                                output_count=`aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" "${tagresource_array[1]}" "${tagresource_array[2]}" --query Reservations[*].Instances[*].[InstanceId]  --output text | sed "$tag_resource_count"q | wc -l`;;
+                                        
+                                        *)####this condition will execute when tagresource file has no tags or more than two tags####
+                                                echo "Incorrect number of tags provided in tagfile"
+                                                exit 1;;
+                                esac
+                                if [ -n "$target_resources" ]; then
+                                        if [[ "$output_count" == "$tag_resource_count" ]]; then
+                                                echo $target_resources >> target_instances
+                                        else
+                                                echo "$tag_resource_count instances not found for tag ${tagresource_array[1]}! Check the instance count"
+                                                exit 1
+                                        fi
+                                else
+                                        echo "No such instance with tag ${tagresource_array[1]}"
+                                        exit 1
+                                fi
+                        fi
+
+
+                done < tagfile
+
+                ####Add tag name to target instances for AWS-Terraform-$stack###
+                while read instance
+                do
+                    aws ec2 create-tags --resources $instance --tags Key=\"Deploymenttype\",Value=AWS-Terraform-$stack
+                done < target_instances
+                rm -rf target_instances tagged_instances
+                '''
+                }
+            }
+        }
+  }
+}
+
