@@ -123,7 +123,7 @@ for vpc in response['Vpcs']:
                                     csv_w.writerow([count,(vpc['VpcId']),(vpc['CidrBlock']),(vpctags.get('Value')),(subnet['SubnetId']),(subnet['CidrBlock']),"",(subnet['AvailabilityZone']),"","","","","","",i,"",""])
                                     count+=1
                         natgateway_response = client.describe_nat_gateways(Filters=[{ 'Name': 'subnet-id', 'Values': [subnet['SubnetId']]}])
-                        for natgateway in natgateway_response ['NatGateways']:
+                        for natgateway in natgateway_response['NatGateways']:
                             natgateway_tags=[]
                             if 'Tags' in natgateway:
                                 for natgatewaytags in natgateway['Tags']:
@@ -134,10 +134,9 @@ for vpc in response['Vpcs']:
                             else:
                                 csv_w.writerow([count,(vpc['VpcId']),(vpc['CidrBlock']),(vpctags.get('Value')),(subnet['SubnetId']),(subnet['CidrBlock']),"",(subnet['AvailabilityZone']),"","","","","","","",natgateway['NatGatewayId'],""])
                                 count+=1
-                            if 'Tags' in i and 'Name' not in natgateway_tags:
+                            if 'Tags' in natgateway and 'Name' not in natgateway_tags:
                                 csv_w.writerow([count,(vpc['VpcId']),(vpc['CidrBlock']),(vpctags.get('Value')),(subnet['SubnetId']),(subnet['CidrBlock']),"",(subnet['AvailabilityZone']),"","","","","","","",natgateway['NatGatewayId'],""])
                                 count+=1
-
     else:
         subnet_client = client.describe_subnets(Filters=[{ 'Name': 'vpc-id', 'Values': [vpc['VpcId']]}])
         if not subnet_client['Subnets']:
@@ -237,7 +236,7 @@ for vpc in response['Vpcs']:
                             csv_w.writerow([count,(vpc['VpcId']),(vpc['CidrBlock']),(vpctags.get('Value')),(subnet['SubnetId']),(subnet['CidrBlock']),"",(subnet['AvailabilityZone']),"","","","","","",i,"",""])
                             count+=1
                 natgateway_response = client.describe_nat_gateways(Filters=[{ 'Name': 'subnet-id', 'Values': [subnet['SubnetId']]}])
-                for natgateway in natgateway_response ['NatGateways']:
+                for natgateway in natgateway_response['NatGateways']:
                     natgateway_tags=[]
                     if 'Tags' in natgateway:
                         for natgatewaytags in natgateway['Tags']:
@@ -248,7 +247,7 @@ for vpc in response['Vpcs']:
                     else:
                         csv_w.writerow([count,(vpc['VpcId']),(vpc['CidrBlock']),(vpctags.get('Value')),(subnet['SubnetId']),(subnet['CidrBlock']),"",(subnet['AvailabilityZone']),"","","","","","","",natgateway['NatGatewayId'],""])
                         count+=1
-                    if 'Tags' in i and 'Name' not in natgateway_tags:
+                    if 'Tags' in natgateway and 'Name' not in natgateway_tags:
                         csv_w.writerow([count,(vpc['VpcId']),(vpc['CidrBlock']),(vpctags.get('Value')),(subnet['SubnetId']),(subnet['CidrBlock']),"",(subnet['AvailabilityZone']),"","","","","","","",natgateway['NatGatewayId'],""])
                         count+=1
     if 'Tags' in vpc and 'Name' not in vpc_tags: 
@@ -350,7 +349,7 @@ for vpc in response['Vpcs']:
                             csv_w.writerow([count,(vpc['VpcId']),(vpc['CidrBlock']),(vpctags.get('Value')),(subnet['SubnetId']),(subnet['CidrBlock']),"",(subnet['AvailabilityZone']),"","","","","","",i,"",""])
                             count+=1
                 natgateway_response = client.describe_nat_gateways(Filters=[{ 'Name': 'subnet-id', 'Values': [subnet['SubnetId']]}])
-                for natgateway in natgateway_response ['NatGateways']:
+                for natgateway in natgateway_response['NatGateways']:
                     natgateway_tags=[]
                     if 'Tags' in natgateway:
                         for natgatewaytags in natgateway['Tags']:
@@ -361,7 +360,7 @@ for vpc in response['Vpcs']:
                     else:
                         csv_w.writerow([count,(vpc['VpcId']),(vpc['CidrBlock']),(vpctags.get('Value')),(subnet['SubnetId']),(subnet['CidrBlock']),"",(subnet['AvailabilityZone']),"","","","","","","",natgateway['NatGatewayId'],""])
                         count+=1
-                    if 'Tags' in i and 'Name' not in natgateway_tags:
+                    if 'Tags' in natgateway and 'Name' not in natgateway_tags:
                         csv_w.writerow([count,(vpc['VpcId']),(vpc['CidrBlock']),(vpctags.get('Value')),(subnet['SubnetId']),(subnet['CidrBlock']),"",(subnet['AvailabilityZone']),"","","","","","","",natgateway['NatGatewayId'],""])
                         count+=1
 csv_ob.close()
