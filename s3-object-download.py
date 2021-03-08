@@ -1,6 +1,6 @@
 import boto3
 
-bucket_name = 'es-sandbox-test'
+bucket_name = 'esx-test'
 s3_file_path= 'unit/89324222322/test.csv'
 save_as = 's3.csv'
 
