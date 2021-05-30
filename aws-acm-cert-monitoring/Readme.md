@@ -45,6 +45,7 @@ export THRESHOLDS=7,30,45,60
 
 Example execution:
 
+```
 I$ export THRESHOLDS=7,30,45,200
 I$ export REGIONS=us-east-1
 I$ python3 acm-monitor.py 
@@ -53,3 +54,4 @@ Critical: 987333333/us-west-2/sandbox1.public.aws.testm.com expired by -86 days
 Out of 4 , 1 of our certificates already expired.
 Out of 4 , 1 of our certificates, about to expire within the given threshold.
 :Documents 2$ 
+```
